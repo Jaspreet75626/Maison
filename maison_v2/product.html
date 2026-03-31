@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAISON — Product</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="product.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="index.html" class="nav-logo">MAISON</a>
+      <div class="nav-right">
+        <a href="index.html" class="nav-link">Shop</a>
+        <a href="#" class="nav-link">Collections</a>
+        <a href="#" class="nav-link">Journal</a>
+        <button class="cart-btn" onclick="toggleCart()">
+          Bag <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="breadcrumb">
+      <a href="index.html">Shop</a>
+      <span class="breadcrumb-sep">›</span>
+      <span id="bcCategory">—</span>
+      <span class="breadcrumb-sep">›</span>
+      <span id="bcName">—</span>
+    </div>
+
+    <div class="product-layout">
+      <!-- IMAGE PANEL -->
+      <div class="image-panel">
+        <div class="thumb-rail" id="thumbRail"></div>
+        <div
+          class="main-image"
+          id="mainImage"
+          style="background: var(--surface)"
+        ></div>
+        <span class="img-badge" id="imgBadge" style="display: none"></span>
+      </div>
+
+      <!-- INFO PANEL -->
+      <div class="info-panel">
+        <div class="p-category" id="pCategory"></div>
+        <h1 class="p-name" id="pName"></h1>
+
+        <div class="p-price-row">
+          <span class="p-price" id="pPrice"></span>
+          <span class="p-original" id="pOriginal" style="display: none"></span>
+          <span class="p-savings" id="pSavings" style="display: none"></span>
+        </div>
+
+        <!-- SIZE -->
+        <div class="option-label">
+          <span>Select Size</span>
+          <span class="size-link">Size Guide</span>
+        </div>
+        <div class="size-grid" id="sizeGrid"></div>
+
+        <!-- COLOUR -->
+        <div class="option-label">
+          <span
+            >Colour:
+            <span
+              id="selectedColour"
+              style="color: var(--text); text-transform: capitalize"
+            ></span
+          ></span>
+        </div>
+        <div class="colour-grid" id="colourGrid"></div>
+
+        <!-- QTY + ADD -->
+        <div class="add-row">
+          <div class="qty-control">
+            <button onclick="changeLocalQty(-1)">−</button>
+            <span id="localQty">1</span>
+            <button onclick="changeLocalQty(1)">+</button>
+          </div>
+          <button
+            class="main-add-btn"
+            id="mainAddBtn"
+            onclick="addThisToCart()"
+          >
+            Add to Bag
+          </button>
+          <button class="wishlist-heart" id="heartBtn" onclick="toggleHeart()">
+            ♡
+          </button>
+        </div>
+
+        <p class="p-desc" id="pDesc"></p>
+
+        <!-- ACCORDION -->
+        <div class="accordion">
+          <div class="accord-item">
+            <button class="accord-btn" onclick="toggleAccord(this)">
+              <span>Material & Care</span><span class="accord-arrow">▾</span>
+            </button>
+            <div class="accord-body">
+              <ul id="accordMaterial"></ul>
+            </div>
+          </div>
+          <div class="accord-item">
+            <button class="accord-btn" onclick="toggleAccord(this)">
+              <span>Shipping & Returns</span><span class="accord-arrow">▾</span>
+            </button>
+            <div class="accord-body">
+              <p>
+                Free standard shipping on orders over $200. Express options
+                available at checkout. Returns accepted within 30 days in
+                original condition.
+              </p>
+            </div>
+          </div>
+          <div class="accord-item">
+            <button class="accord-btn" onclick="toggleAccord(this)">
+              <span>Sustainability</span><span class="accord-arrow">▾</span>
+            </button>
+            <div class="accord-body">
+              <p>
+                All MAISON pieces are produced in limited quantities using
+                certified natural fibres. Our packaging is fully compostable. We
+                partner with artisan workshops paying living wages.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATED -->
+    <div class="related-section">
+      <h2 class="section-heading">You May Also Like</h2>
+      <div class="related-grid" id="relatedGrid"></div>
+    </div>
+
+    <!-- CART -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cartDrawer">
+      <div class="cart-header">
+        <span class="cart-title">Your Bag</span>
+        <button class="cart-close" onclick="toggleCart()">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-footer" id="cartFooter" style="display: none">
+        <div class="cart-subtotal">
+          <span class="cart-subtotal-label">Subtotal</span>
+          <span class="cart-subtotal-value" id="cartTotal">$0</span>
+        </div>
+        <p class="cart-note">Shipping & taxes calculated at checkout</p>
+        <button
+          class="checkout-btn"
+          onclick="window.location.href = 'checkout.html'"
+        >
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="data.js"></script>
+    <script>
+      // Read product ID from URL
+      const params = new URLSearchParams(window.location.search);
+      const productId = parseInt(params.get("id")) || 1;
+      const product = PRODUCTS.find((p) => p.id === productId) || PRODUCTS[0];
+
+      let localQty = 1;
+      let selectedSize = null;
+      let isWished = false;
+
+      const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+      const SOLDOUT = ["XXL"];
+      const COLOURS = {
+        camel: "#C19A6B",
+        ivory: "#F5F0E8",
+        charcoal: "#3a3a3c",
+        ecru: "#E8DCC8",
+        slate: "#6E7B8B",
+      };
+      const MATERIALS = {
+        outerwear: [
+          "Outer: 80% Alpaca, 20% Wool",
+          "Lining: 100% Silk Crepe",
+          "Dry clean only",
+          "Made in Italy",
+        ],
+        knitwear: [
+          "100% Grade-A Cashmere",
+          "Hand wash cold",
+          "Lay flat to dry",
+          "Made in Scotland",
+        ],
+        trousers: [
+          "98% Wool, 2% Elastane",
+          "Dry clean recommended",
+          "Press on reverse",
+          "Made in Italy",
+        ],
+        accessories: [
+          "Full-grain leather",
+          "Condition regularly",
+          "Store away from heat",
+          "Handmade in Florence",
+        ],
+      };
+
+      function init() {
+        // breadcrumb
+        document.getElementById("bcCategory").textContent = product.category;
+        document.getElementById("bcName").textContent = product.name;
+
+        // badge
+        if (product.badge) {
+          const b = document.getElementById("imgBadge");
+          b.textContent = product.badge;
+          b.className = `img-badge badge-${product.badge.toLowerCase()}`;
+          b.style.display = "block";
+        }
+
+        // main image + thumbnails
+        document.getElementById("mainImage").style.background = colourBg(
+          product.colour,
+        );
+        document.getElementById("mainImage").innerHTML =
+          `<span style="font-size:clamp(4rem,10vw,9rem)">${product.emoji}</span>`;
+        const thumbEmojis = ["🪞", "🧵", "📐"];
+        document.getElementById("thumbRail").innerHTML = [
+          `<div class="thumb active" onclick="selectThumb(this,'${product.emoji}')">${product.emoji}</div>`,
+        ]
+          .concat(
+            thumbEmojis.map(
+              (e) =>
+                `<div class="thumb" onclick="selectThumb(this,'${e}')">${e}</div>`,
+            ),
+          )
+          .join("");
+
+        // category + name + price
+        document.getElementById("pCategory").textContent = product.category;
+        document.getElementById("pName").textContent = product.name;
+        document.getElementById("pPrice").textContent =
+          "$" + product.price.toLocaleString();
+        if (product.originalPrice) {
+          document.getElementById("pOriginal").textContent =
+            "$" + product.originalPrice;
+          document.getElementById("pOriginal").style.display = "inline";
+          const saved = product.originalPrice - product.price;
+          document.getElementById("pSavings").textContent = `Save $${saved}`;
+          document.getElementById("pSavings").style.display = "inline";
+        }
+
+        // sizes
+        document.getElementById("sizeGrid").innerHTML = SIZES.map(
+          (s) => `
+    <button class="size-btn ${SOLDOUT.includes(s) ? "soldout" : ""}" onclick="selectSize(this,'${s}')" ${SOLDOUT.includes(s) ? "disabled" : ""}>${s}</button>`,
+        ).join("");
+
+        // colours
+        const cols = ["camel", "ivory", "charcoal", "ecru", "slate"];
+        document.getElementById("colourGrid").innerHTML = cols
+          .map(
+            (c, i) => `
+    <button class="colour-swatch ${i === 0 ? "active" : ""}" style="background:${COLOURS[c] || "#888"}" title="${c}" onclick="selectColour(this,'${c}')"></button>`,
+          )
+          .join("");
+        document.getElementById("selectedColour").textContent = product.colour;
+
+        // description
+        document.getElementById("pDesc").textContent = product.desc;
+
+        // materials
+        const mats = MATERIALS[product.category] || MATERIALS["knitwear"];
+        document.getElementById("accordMaterial").innerHTML = mats
+          .map((m) => `<li>${m}</li>`)
+          .join("");
+
+        // related
+        const related = PRODUCTS.filter(
+          (p) => p.id !== product.id && p.category === product.category,
+        ).slice(0, 4);
+        if (related.length < 2)
+          related.push(
+            ...PRODUCTS.filter((p) => p.id !== product.id).slice(
+              0,
+              4 - related.length,
+            ),
+          );
+        document.getElementById("relatedGrid").innerHTML = related
+          .map(
+            (p) => `
+    <div class="related-card" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="related-img" style="background:${colourBg(p.colour)}">${p.emoji}</div>
+      <div class="related-info">
+        <div class="related-name">${p.name}</div>
+        <div class="related-price">$${p.price.toLocaleString()}</div>
+      </div>
+    </div>`,
+          )
+          .join("");
+      }
+
+      function selectThumb(el, emoji) {
+        document
+          .querySelectorAll(".thumb")
+          .forEach((t) => t.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("mainImage").innerHTML =
+          `<span style="font-size:clamp(4rem,10vw,9rem)">${emoji}</span>`;
+      }
+
+      function selectSize(btn, size) {
+        document
+          .querySelectorAll(".size-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedSize = size;
+      }
+
+      function selectColour(swatch, colour) {
+        document
+          .querySelectorAll(".colour-swatch")
+          .forEach((s) => s.classList.remove("active"));
+        swatch.classList.add("active");
+        document.getElementById("selectedColour").textContent = colour;
+        document.getElementById("mainImage").style.background =
+          colourBg(colour);
+      }
+
+      function changeLocalQty(delta) {
+        localQty = Math.max(1, Math.min(10, localQty + delta));
+        document.getElementById("localQty").textContent = localQty;
+      }
+
+      function addThisToCart() {
+        for (let i = 0; i < localQty; i++) Cart.add(product.id);
+        const btn = document.getElementById("mainAddBtn");
+        btn.textContent = "Added to Bag ✓";
+        btn.classList.add("added");
+        setTimeout(() => {
+          btn.textContent = "Add to Bag";
+          btn.classList.remove("added");
+        }, 1800);
+        showToast(`${product.name} × ${localQty} added to bag`);
+        renderCartDrawer();
+        toggleCart();
+      }
+
+      function toggleHeart() {
+        isWished = !isWished;
+        const btn = document.getElementById("heartBtn");
+        btn.innerHTML = isWished ? "♥" : "♡";
+        btn.classList.toggle("liked", isWished);
+        if (isWished) showToast("Added to wishlist");
+      }
+
+      function toggleAccord(btn) {
+        const body = btn.nextElementSibling;
+        const arrow = btn.querySelector(".accord-arrow");
+        const isOpen = body.classList.toggle("open");
+        arrow.style.transform = isOpen ? "rotate(180deg)" : "";
+      }
+
+      init();
+    </script>
+  </body>
+</html>

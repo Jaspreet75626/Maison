@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAISON — Checkout</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="checkout.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="index.html" class="nav-logo">MAISON</a>
+      <div class="nav-secure">🔒 Secure Checkout</div>
+    </nav>
+
+    <!-- STEPS -->
+    <div class="steps">
+      <div class="step done" id="step1">
+        <span class="step-num">✓</span><span>Bag</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step active" id="step2">
+        <span class="step-num">2</span><span>Details</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step3">
+        <span class="step-num">3</span><span>Payment</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step4">
+        <span class="step-num">4</span><span>Confirm</span>
+      </div>
+    </div>
+
+    <div id="mainContent"></div>
+
+    <!-- SUCCESS MODAL -->
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-modal">
+        <div class="success-icon">✦</div>
+        <h2 class="success-title">Order Placed</h2>
+        <p class="success-msg">
+          Thank you for your order. We'll send a confirmation to your email
+          shortly. Your pieces will be carefully packaged and dispatched within
+          2 business days.
+        </p>
+        <p class="order-number">
+          Order reference: <span class="success-order-num" id="orderRef"></span>
+        </p>
+        <button class="back-btn" onclick="finishOrder()">
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="data.js"></script>
+    <script>
+      function renderCheckout() {
+        const cart = Cart.get();
+        const items = Object.values(cart);
+        const main = document.getElementById("mainContent");
+
+        if (!items.length) {
+          main.innerHTML = `<div class="empty-checkout">
+      <h2>Your bag is empty</h2>
+      <p>Add some pieces before checking out.</p>
+      <a href="index.html">Back to Shop</a>
+    </div>`;
+          return;
+        }
+
+        const subtotal = Cart.total();
+        const shipping = subtotal >= 200 ? 0 : 15;
+        let discount = 0;
+        let promoApplied = false;
+
+        main.innerHTML = `<div class="checkout-layout">
+    <!-- FORM -->
+    <div class="form-section">
+      <!-- CONTACT -->
+      <h2 class="section-title">Contact Information</h2>
+      <div class="form-row">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="fEmail" placeholder="you@example.com" oninput="validateField(this,'email')">
+          <span class="err-msg">Please enter a valid email</span>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="emailOptIn" checked>
+        <span>Receive order updates and MAISON news</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- DELIVERY -->
+      <h2 class="section-title">Delivery Address</h2>
+      <div class="form-row two">
+        <div class="field"><label>First Name</label><input type="text" id="fFirst" placeholder="First" oninput="validateField(this,'name')"><span class="err-msg">Required</span></div>
+        <div class="field"><label>Last Name</label><input type="text" id="fLast" placeholder="Last" oninput="validateField(this,'name')"><span class="err-msg">Required</span></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Address Line 1</label><input type="text" id="fAddr1" placeholder="Street address" oninput="validateField(this,'name')"><span class="err-msg">Required</span></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Address Line 2 <span style="color:var(--muted)">(optional)</span></label><input type="text" id="fAddr2" placeholder="Apartment, suite, etc."></div>
+      </div>
+      <div class="form-row three">
+        <div class="field"><label>City</label><input type="text" id="fCity" placeholder="City" oninput="validateField(this,'name')"><span class="err-msg">Required</span></div>
+        <div class="field"><label>State / Region</label><input type="text" id="fState" placeholder="State" oninput="validateField(this,'name')"><span class="err-msg">Required</span></div>
+        <div class="field"><label>Postcode</label><input type="text" id="fZip" placeholder="ZIP" oninput="validateField(this,'zip')"><span class="err-msg">Invalid</span></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Country</label>
+          <select id="fCountry">
+            <option value="">Select country</option>
+            <option selected>United States</option><option>United Kingdom</option><option>India</option>
+            <option>Australia</option><option>Canada</option><option>France</option><option>Germany</option><option>Italy</option><option>Japan</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PAYMENT -->
+      <h2 class="section-title">Payment Details</h2>
+      <div class="payment-icons">
+        <span class="pay-icon">VISA</span><span class="pay-icon">MC</span><span class="pay-icon">AMEX</span><span class="pay-icon">PayPal</span><span class="pay-icon">Apple Pay</span>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Cardholder Name</label>
+          <input type="text" id="fCardName" placeholder="Name on card" oninput="validateField(this,'name')">
+          <span class="err-msg">Required</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Card Number</label>
+          <div class="card-input-wrap">
+            <input type="text" id="fCardNum" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)" style="width:100%">
+            <span class="card-type" id="cardType"></span>
+          </div>
+          <span class="err-msg">Enter a valid 16-digit number</span>
+        </div>
+      </div>
+      <div class="form-row two">
+        <div class="field"><label>Expiry Date</label><input type="text" id="fExpiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"><span class="err-msg">Invalid date</span></div>
+        <div class="field"><label>CVV</label><input type="text" id="fCvv" placeholder="•••" maxlength="4" oninput="validateField(this,'cvv')"><span class="err-msg">Invalid CVV</span></div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="savePay">
+        <span>Save card for future purchases</span>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitOrder()">
+        <span class="btn-text">Place Order — $${(subtotal + shipping).toLocaleString()}</span>
+      </button>
+      <p class="secure-note">🔒 256-bit SSL encryption · Your data is never stored</p>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary-section">
+      <div class="summary-title">Order Summary (${items.reduce((s, i) => s + i.qty, 0)} items)</div>
+
+      <div id="orderItems">
+        ${items
+          .map(
+            (i) => `
+          <div class="order-item">
+            <div class="order-item-img">
+              ${i.product.emoji}
+              <span class="order-qty-badge">${i.qty}</span>
+            </div>
+            <div class="order-item-info">
+              <div class="order-item-name">${i.product.name}</div>
+              <div class="order-item-cat">${i.product.category}</div>
+            </div>
+            <div class="order-item-price">$${(i.product.price * i.qty).toLocaleString()}</div>
+          </div>`,
+          )
+          .join("")}
+      </div>
+
+      <!-- PROMO -->
+      <div class="promo-row">
+        <input type="text" class="promo-input" id="promoInput" placeholder="Promo code">
+        <button class="promo-btn" onclick="applyPromo()">Apply</button>
+      </div>
+      <div class="promo-success" id="promoSuccess">✓ Code applied — 10% off</div>
+
+      <!-- TOTALS -->
+      <div class="total-divider"></div>
+      <div class="total-row"><span>Subtotal</span><span>$${subtotal.toLocaleString()}</span></div>
+      <div class="total-row shipping"><span>Shipping</span><span>${shipping === 0 ? "Free" : "$" + shipping}</span></div>
+      <div class="total-row discount" id="discountRow" style="display:none"><span>Promo discount</span><span id="discountVal"></span></div>
+      <div class="total-divider"></div>
+      <div class="grand-total">
+        <span class="grand-total-label">Total</span>
+        <span class="grand-total-value" id="grandTotalVal">$${(subtotal + shipping).toLocaleString()}</span>
+      </div>
+      <p style="font-size:.65rem;color:var(--muted);margin-top:.5rem">Including all taxes</p>
+    </div>
+  </div>`;
+
+        // store for promo use
+        window._subtotal = subtotal;
+        window._shipping = shipping;
+        window._discount = 0;
+      }
+
+      // ── Validation ──────────────────────────────────────────
+      function validateField(input, type) {
+        let valid = false;
+        const v = input.value.trim();
+        if (type === "email") valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        else if (type === "name") valid = v.length >= 2;
+        else if (type === "zip")
+          valid = /^\d{4,10}$/.test(v.replace(/\s/g, ""));
+        else if (type === "cvv") valid = /^\d{3,4}$/.test(v);
+        else if (type === "card") valid = v.replace(/\s/g, "").length === 16;
+        input.classList.toggle("error", !valid && v.length > 0);
+        input.classList.toggle("valid", valid);
+        return valid;
+      }
+
+      function formatCard(input) {
+        let v = input.value.replace(/\D/g, "").slice(0, 16);
+        input.value = v.replace(/(.{4})/g, "$1 ").trim();
+        const t = document.getElementById("cardType");
+        if (v.startsWith("4")) t.textContent = "VISA";
+        else if (/^5[1-5]/.test(v)) t.textContent = "MC";
+        else if (/^3[47]/.test(v)) t.textContent = "AMEX";
+        else t.textContent = "";
+        validateField(input, "card");
+      }
+
+      function formatExpiry(input) {
+        let v = input.value.replace(/\D/g, "").slice(0, 4);
+        if (v.length >= 3) v = v.slice(0, 2) + " / " + v.slice(2);
+        input.value = v;
+      }
+
+      // ── Promo Code ──────────────────────────────────────────
+      function applyPromo() {
+        const code = document
+          .getElementById("promoInput")
+          .value.trim()
+          .toUpperCase();
+        const sub = window._subtotal;
+        const ship = window._shipping;
+        if (code === "MAISON10" || code === "FORM10" || code === "SAVE10") {
+          window._discount = Math.round(sub * 0.1);
+          const total = sub + ship - window._discount;
+          document.getElementById("discountRow").style.display = "flex";
+          document.getElementById("discountVal").textContent =
+            "-$" + window._discount;
+          document.getElementById("grandTotalVal").textContent =
+            "$" + total.toLocaleString();
+          document.getElementById("promoSuccess").style.display = "block";
+          document
+            .getElementById("submitBtn")
+            .querySelector(".btn-text").textContent =
+            `Place Order — $${total.toLocaleString()}`;
+          showToast("Promo code applied — 10% off!");
+        } else {
+          showToast("Invalid promo code");
+        }
+      }
+
+      // ── Submit ───────────────────────────────────────────────
+      function submitOrder() {
+        const fields = [
+          { id: "fEmail", type: "email" },
+          { id: "fFirst", type: "name" },
+          { id: "fLast", type: "name" },
+          { id: "fAddr1", type: "name" },
+          { id: "fCity", type: "name" },
+          { id: "fState", type: "name" },
+          { id: "fZip", type: "zip" },
+          { id: "fCardName", type: "name" },
+          { id: "fCardNum", type: "card" },
+          { id: "fCvv", type: "cvv" },
+        ];
+        let allValid = true;
+        fields.forEach((f) => {
+          const el = document.getElementById(f.id);
+          if (!validateField(el, f.type)) {
+            allValid = false;
+            if (allValid === false)
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        });
+        if (!allValid) {
+          showToast("Please fill in all required fields");
+          return;
+        }
+
+        const btn = document.getElementById("submitBtn");
+        btn.classList.add("loading");
+        btn.disabled = true;
+
+        // simulate order processing
+        setTimeout(() => {
+          const ref =
+            "MSN-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+          document.getElementById("orderRef").textContent = ref;
+          document.getElementById("successOverlay").classList.add("show");
+          // Update steps
+          document.getElementById("step3").classList.add("done");
+          document
+            .getElementById("step3")
+            .querySelector(".step-num").textContent = "✓";
+          document.getElementById("step4").classList.add("active");
+        }, 1800);
+      }
+
+      function finishOrder() {
+        Cart.clear();
+        window.location.href = "index.html";
+      }
+
+      // ── Scroll-triggered step highlight ──────────────────────
+      window.addEventListener("scroll", () => {
+        const paySection = document.getElementById("fCardNum");
+        if (!paySection) return;
+        const rect = paySection.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+          document.getElementById("step3").classList.add("active");
+        }
+      });
+
+      renderCheckout();
+    </script>
+  </body>
+</html>

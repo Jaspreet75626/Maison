@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAISON — Shop</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="index.html" class="nav-logo">MAISON</a>
+      <div class="nav-right">
+        <a href="index.html" class="nav-link">Shop</a>
+        <a href="#" class="nav-link">Collections</a>
+        <a href="#" class="nav-link">Journal</a>
+        <button class="cart-btn" onclick="toggleCart()">
+          Bag <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="hero-strip">
+      <div>
+        <h1 class="hero-title">New <em>Arrivals</em><br />Collection</h1>
+      </div>
+      <div class="hero-meta">Spring–Summer 2026</div>
+    </div>
+
+    <!-- Mobile filter bar -->
+    <div
+      style="
+        padding: 1rem clamp(1rem, 3vw, 2.5rem);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+      "
+    >
+      <button class="mobile-filter-toggle" onclick="openMobileSidebar()">
+        ☰ Filters
+      </button>
+      <div
+        id="activeFiltersBar"
+        class="active-filters"
+        style="flex: 1; margin: 0 1rem"
+      ></div>
+    </div>
+
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeMobileSidebar()"
+    ></div>
+
+    <div class="shop-layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="filter-section">
+          <div class="filter-heading">Category</div>
+          <div class="filter-options" id="categoryFilters">
+            <button
+              class="filter-chip active"
+              onclick="setFilter('category', 'all', this)"
+              data-value="all"
+            >
+              <span>All Items</span><span class="filter-chip-count">16</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('category', 'outerwear', this)"
+              data-value="outerwear"
+            >
+              <span>Outerwear</span><span class="filter-chip-count">5</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('category', 'knitwear', this)"
+              data-value="knitwear"
+            >
+              <span>Knitwear</span><span class="filter-chip-count">4</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('category', 'trousers', this)"
+              data-value="trousers"
+            >
+              <span>Trousers</span><span class="filter-chip-count">4</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('category', 'accessories', this)"
+              data-value="accessories"
+            >
+              <span>Accessories</span><span class="filter-chip-count">5</span>
+            </button>
+          </div>
+        </div>
+        <div class="filter-section">
+          <div class="filter-heading">Colour</div>
+          <div class="filter-options" id="colourFilters">
+            <button
+              class="filter-chip"
+              onclick="setFilter('colour', 'ivory', this)"
+              data-value="ivory"
+            >
+              <span>Ivory</span><span class="filter-chip-count">4</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('colour', 'charcoal', this)"
+              data-value="charcoal"
+            >
+              <span>Charcoal</span><span class="filter-chip-count">3</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('colour', 'camel', this)"
+              data-value="camel"
+            >
+              <span>Camel</span><span class="filter-chip-count">4</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('colour', 'ecru', this)"
+              data-value="ecru"
+            >
+              <span>Ecru</span><span class="filter-chip-count">3</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('colour', 'slate', this)"
+              data-value="slate"
+            >
+              <span>Slate</span><span class="filter-chip-count">3</span>
+            </button>
+          </div>
+        </div>
+        <div class="filter-section">
+          <div class="filter-heading">Price Range</div>
+          <div class="price-inputs">
+            <input
+              type="number"
+              class="price-input"
+              id="priceMin"
+              placeholder="Min"
+              oninput="applyFilters()"
+            />
+            <span class="price-sep">—</span>
+            <input
+              type="number"
+              class="price-input"
+              id="priceMax"
+              placeholder="Max"
+              oninput="applyFilters()"
+            />
+          </div>
+        </div>
+        <div class="filter-section">
+          <div class="filter-heading">Status</div>
+          <div class="filter-options" id="statusFilters">
+            <button
+              class="filter-chip"
+              onclick="setFilter('status', 'new', this)"
+              data-value="new"
+            >
+              <span>New In</span><span class="filter-chip-count">7</span>
+            </button>
+            <button
+              class="filter-chip"
+              onclick="setFilter('status', 'sale', this)"
+              data-value="sale"
+            >
+              <span>On Sale</span><span class="filter-chip-count">4</span>
+            </button>
+          </div>
+        </div>
+        <button class="clear-btn" onclick="clearFilters()">
+          Clear All Filters
+        </button>
+      </aside>
+
+      <main class="main-area">
+        <div class="toolbar">
+          <div class="result-count" id="resultCount"><span>0</span> items</div>
+          <div
+            style="
+              display: flex;
+              gap: 0.75rem;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <select
+              class="sort-select"
+              id="sortSelect"
+              onchange="applyFilters()"
+            >
+              <option value="default">Sort: Featured</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A–Z</option>
+              <option value="newest">Newest First</option>
+            </select>
+            <div class="view-toggle">
+              <button
+                class="view-btn active"
+                id="gridViewBtn"
+                onclick="setView('grid')"
+                title="Grid"
+              >
+                ⊞
+              </button>
+              <button
+                class="view-btn"
+                id="listViewBtn"
+                onclick="setView('list')"
+                title="List"
+              >
+                ≡
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </main>
+    </div>
+
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cartDrawer">
+      <div class="cart-header">
+        <span class="cart-title">Your Bag</span>
+        <button class="cart-close" onclick="toggleCart()">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-footer" id="cartFooter" style="display: none">
+        <div class="cart-subtotal">
+          <span class="cart-subtotal-label">Subtotal</span>
+          <span class="cart-subtotal-value" id="cartTotal">$0</span>
+        </div>
+        <p class="cart-note">Shipping & taxes calculated at checkout</p>
+        <button
+          class="checkout-btn"
+          onclick="window.location.href = 'checkout.html'"
+        >
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="data.js"></script>
+    <script>
+      let filters = { category: "all", colour: null, status: null };
+      let viewMode = "grid";
+      let wishlist = new Set();
+
+      function getFiltered() {
+        let list = [...PRODUCTS];
+        if (filters.category !== "all")
+          list = list.filter((p) => p.category === filters.category);
+        if (filters.colour)
+          list = list.filter((p) => p.colour === filters.colour);
+        if (filters.status)
+          list = list.filter((p) => p.status === filters.status);
+        const mn = parseFloat(document.getElementById("priceMin").value);
+        const mx = parseFloat(document.getElementById("priceMax").value);
+        if (!isNaN(mn)) list = list.filter((p) => p.price >= mn);
+        if (!isNaN(mx)) list = list.filter((p) => p.price <= mx);
+        const sort = document.getElementById("sortSelect").value;
+        if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
+        if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
+        if (sort === "name-asc")
+          list.sort((a, b) => a.name.localeCompare(b.name));
+        if (sort === "newest")
+          list.sort(
+            (a, b) =>
+              (b.status === "new" ? 1 : 0) - (a.status === "new" ? 1 : 0),
+          );
+        return list;
+      }
+
+      function renderProducts() {
+        const grid = document.getElementById("productGrid");
+        const products = getFiltered();
+        document.getElementById("resultCount").innerHTML =
+          `<span>${products.length}</span> item${products.length !== 1 ? "s" : ""}`;
+        grid.className =
+          "product-grid" + (viewMode === "list" ? " list-view" : "");
+        if (!products.length) {
+          grid.innerHTML = `<div class="empty-state"><h3>No items found</h3><p>Try adjusting your filters</p></div>`;
+          return;
+        }
+        const cart = Cart.get();
+        grid.innerHTML = products
+          .map((p, i) => {
+            const inCart = cart[p.id]?.qty || 0;
+            const liked = wishlist.has(p.id);
+            return `<div class="product-card" style="animation-delay:${i * 0.04}s">
+      <div class="product-image-wrap">
+        <div class="img-placeholder" style="background:${colourBg(p.colour)}">${p.emoji}</div>
+        ${p.badge ? `<span class="product-badge badge-${p.badge.toLowerCase()}">${p.badge}</span>` : ""}
+        <button class="wishlist-btn ${liked ? "liked" : ""}" onclick="toggleWishlist(${p.id},this)">${liked ? "♥" : "♡"}</button>
+        <button class="view-detail-btn" onclick="window.location.href='product.html?id=${p.id}'">View Details →</button>
+      </div>
+      <div class="product-info">
+        <div class="product-category">${p.category}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div>
+            <span class="product-price">$${p.price.toLocaleString()}</span>
+            ${p.originalPrice ? `<span class="product-price-original">$${p.originalPrice}</span>` : ""}
+          </div>
+          <button class="add-btn ${inCart ? "added" : ""}" onclick="doAddToCart(${p.id})">
+            ${inCart ? `In Bag (${inCart})` : "Add to Bag"}
+          </button>
+        </div>
+      </div>
+    </div>`;
+          })
+          .join("");
+        renderActiveFilters();
+      }
+
+      function doAddToCart(id) {
+        Cart.add(id);
+        const p = PRODUCTS.find((x) => x.id === id);
+        showToast(`${p.name} added to bag`);
+        renderProducts();
+        renderCartDrawer();
+      }
+
+      function setFilter(type, value, btn) {
+        if (type === "category") {
+          filters.category = value;
+          document
+            .querySelectorAll("#categoryFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+        } else if (type === "colour") {
+          filters.colour = filters.colour === value ? null : value;
+          document
+            .querySelectorAll("#colourFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+          if (filters.colour) btn.classList.add("active");
+          applyFilters();
+          return;
+        } else if (type === "status") {
+          filters.status = filters.status === value ? null : value;
+          document
+            .querySelectorAll("#statusFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+          if (filters.status) btn.classList.add("active");
+          applyFilters();
+          return;
+        }
+        btn.classList.add("active");
+        applyFilters();
+      }
+
+      function applyFilters() {
+        renderProducts();
+      }
+
+      function clearFilters() {
+        filters = { category: "all", colour: null, status: null };
+        document.getElementById("priceMin").value = "";
+        document.getElementById("priceMax").value = "";
+        document.getElementById("sortSelect").value = "default";
+        document
+          .querySelectorAll(".filter-chip")
+          .forEach((b) => b.classList.remove("active"));
+        document.querySelector('[data-value="all"]').classList.add("active");
+        renderProducts();
+      }
+
+      function renderActiveFilters() {
+        const bar = document.getElementById("activeFiltersBar");
+        const pills = [];
+        if (filters.category !== "all")
+          pills.push({ label: filters.category, key: "category" });
+        if (filters.colour)
+          pills.push({ label: filters.colour, key: "colour" });
+        if (filters.status)
+          pills.push({ label: filters.status, key: "status" });
+        bar.innerHTML = pills
+          .map(
+            (p) =>
+              `<span class="active-pill" onclick="removeFilter('${p.key}')">${p.label} ✕</span>`,
+          )
+          .join("");
+      }
+
+      function removeFilter(key) {
+        if (key === "category") {
+          filters.category = "all";
+          document
+            .querySelectorAll("#categoryFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+          document.querySelector('[data-value="all"]').classList.add("active");
+        } else if (key === "colour") {
+          filters.colour = null;
+          document
+            .querySelectorAll("#colourFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+        } else if (key === "status") {
+          filters.status = null;
+          document
+            .querySelectorAll("#statusFilters .filter-chip")
+            .forEach((b) => b.classList.remove("active"));
+        }
+        renderProducts();
+      }
+
+      function setView(v) {
+        viewMode = v;
+        document
+          .getElementById("gridViewBtn")
+          .classList.toggle("active", v === "grid");
+        document
+          .getElementById("listViewBtn")
+          .classList.toggle("active", v === "list");
+        renderProducts();
+      }
+
+      function toggleWishlist(id, btn) {
+        if (wishlist.has(id)) {
+          wishlist.delete(id);
+          btn.innerHTML = "♡";
+          btn.classList.remove("liked");
+        } else {
+          wishlist.add(id);
+          btn.innerHTML = "♥";
+          btn.classList.add("liked");
+          showToast("Added to wishlist");
+        }
+      }
+
+      function openMobileSidebar() {
+        document.getElementById("sidebar").classList.add("mobile-open");
+        document.getElementById("sidebarOverlay").classList.add("show");
+      }
+      function closeMobileSidebar() {
+        document.getElementById("sidebar").classList.remove("mobile-open");
+        document.getElementById("sidebarOverlay").classList.remove("show");
+      }
+
+      renderProducts();
+    </script>
+  </body>
+</html>
