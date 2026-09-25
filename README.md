@@ -30,4 +30,10 @@ using HTML, CSS, and Vanilla JavaScript. No frameworks or libraries used.
 3. Open `index.html` in any browser
 4. No installation or server required
 
-## Folder Structure
+
+## Key Concepts Demonstrated
+- State management without a framework
+- Multi-page routing using URL parameters
+- Modular JavaScript across multiple HTML files
+- Mobile-first responsive design
+- Real-world UX patterns (toast notifications, drawers, accordions)
